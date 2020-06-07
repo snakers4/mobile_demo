@@ -1,0 +1,54 @@
+version: '2.4'
+
+networks:
+  proxy:
+
+services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - dhparam:/etc/nginx/dhparam
+      - certs:/etc/nginx/certs:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    networks:
+      - proxy
+  letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    container_name: nginx-proxy-le
+    volumes_from:
+      - nginx-proxy
+    volumes:
+      - certs:/etc/nginx/certs:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - proxy
+  mobile-demo:
+    env_file: .env
+    environment:
+      - VIRTUAL_HOST=mobile-demo.silero.ai
+      - VIRTUAL_PORT=3000
+      - LETSENCRYPT_HOST=mobile-demo.silero.ai
+      - LETSENCRYPT_EMAIL=aveysov@gmail.com
+    expose:
+      - "3000"
+    networks:
+      - proxy
+    build:
+      context: .
+      dockerfile: Dockerfile.dockerfile
+    logging:
+      driver: "json-file"
+      options:
+          max-size: "1g"
+
+volumes:
+  vhost:
+  html:
+  dhparam:
+  certs:
