@@ -11,6 +11,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
+      - ./nginx_conf/client_max_body_size.conf:/etc/nginx/conf.d/my_proxy.conf:ro
+      - ./nginx_conf/redirect.conf:/etc/nginx/conf.d/redirect.conf:ro
       - vhost:/etc/nginx/vhost.d
       - html:/usr/share/nginx/html
       - dhparam:/etc/nginx/dhparam
